@@ -21,6 +21,7 @@ dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT || 4000);
+const mlServiceUrl = (process.env.ML_SERVICE_URL || "http://127.0.0.1:8001").replace(/\/$/, "");
 
 app.use(cors());
 app.use(express.json());
@@ -238,6 +239,12 @@ app.patch("/users/:id/status", requireAuth, requireRole(["Admin", "Supervisor"])
       changes: { status },
     });
 
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/status", async (_req, res, next) => {
   try {
     const aiHost = process.env.IA_GUARDIA_URL || "http://127.0.0.1:8000";
@@ -312,7 +319,7 @@ app.get("/ml/evaluation", async (_req, res, next) => {
       res.json(JSON.parse(data));
     } else {
       // Intentar consultar al servicio FastAPI si existe
-      const resp = await fetch("http://127.0.0.1:8000/ml/evaluation").catch(() => null);
+      const resp = await fetch(`${mlServiceUrl}/ml/evaluation`).catch(() => null);
       if (resp && resp.ok) {
         const json = await resp.json();
         res.json(json);
@@ -323,6 +330,8 @@ app.get("/ml/evaluation", async (_req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
 app.post("/ml/select-model", async (req, res, next) => {
   try {
     const { modelKey } = req.body ?? {};
@@ -338,7 +347,7 @@ app.post("/ml/select-model", async (req, res, next) => {
     const evalPath = path.resolve(process.cwd(), "ml_service/evaluation_results.json");
 
     // Reenviar a la API de Python si está activa
-    const resp = await fetch("http://127.0.0.1:8000/ml/select-model", {
+    const resp = await fetch(`${mlServiceUrl}/ml/select-model`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model_key: key }),
@@ -378,7 +387,7 @@ app.post("/ml/select-model", async (req, res, next) => {
 
 app.post("/ml/predict", async (req, res, next) => {
   try {
-    const resp = await fetch("http://127.0.0.1:8000/ml/predict", {
+    const resp = await fetch(`${mlServiceUrl}/ml/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req.body ?? {}),
