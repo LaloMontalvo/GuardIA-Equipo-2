@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  publicar-zip:
+  publicar-apk:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -21,15 +21,15 @@ jobs:
         with:
           github-token: ${{ github.token }}
           run-id: '45271672356'
-          pattern: guardia-*
+          name: guardia-android-debug
           path: paquetes
           merge-multiple: true
-      - name: Publicar paquetes disponibles
+      - name: Adjuntar el APK de revisión
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh release view entrega-v1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then exit 0; fi
-          gh release create entrega-v1 paquetes/*.zip --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'GuardIA · Entrega técnica' --notes 'Paquetes de revisión técnica de GuardIA. El paquete del panel requiere configurar Firebase y compilar para el entorno de revisión.'
+          if gh release view entrega-v1 --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fxq guardia-movil-debug.apk; then exit 0; fi
+          gh release upload entrega-v1 paquetes/guardia-movil-debug.apk --repo "$GITHUB_REPOSITORY"
 
   panel:
     if: github.event_name == 'workflow_dispatch'
