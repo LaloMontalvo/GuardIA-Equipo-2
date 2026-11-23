@@ -1,0 +1,156 @@
+name: Paquetes de revisión
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publicar-componentes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Publicar ramas de GuardIA
+        shell: bash
+        run: |
+          set -euo pipefail
+          declare -a branches=(panel-web backend ia movil)
+          missing=()
+          for branch in "${branches[@]}"; do
+            if ! git show-ref --verify --quiet "refs/remotes/origin/$branch"; then missing+=("$branch"); fi
+          done
+          if [ "${#missing[@]}" -eq 0 ]; then exit 0; fi
+          staging=$(mktemp -d)
+          git clone --quiet --no-checkout https://github.com/rodolfo-estrada/GuardIA.git "$staging/web"
+          git clone --quiet --no-checkout https://github.com/LaloMontalvo/GuardIA-Movil.git "$staging/mobile"
+          git config user.name "GuardIA Equipo 2"
+          git config user.email "guardia-equipo-2@users.noreply.github.com"
+          for branch in "${missing[@]}"; do
+            origin=rodolfo-estrada/GuardIA
+            source="$staging/web"
+            revision=e2a973e994aa9ac4d3fb910f98c951f05d2f164f
+            case "$branch" in
+              panel-web) paths=(.gitignore .env.example architecture eslint.config.js index.html mockups mockups_realistic package-lock.json package.json postcss.config.js public src tailwind.config.js tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts); doc='IyBHdWFyZElBIMK3IFBhbmVsIHdlYgoKUGFuZWwgZGUgbW9uaXRvcmVvIHkgYWRtaW5pc3RyYWNpw7NuIGVuIFJlYWN0LCBUeXBlU2NyaXB0IHkgVml0ZS4gTG9zIGRpYWdyYW1hcyBlc3TDoW4gZW4gYGFyY2hpdGVjdHVyZS9gIHkgbG9zIHByb3RvdGlwb3MgZW4gYG1vY2t1cHMvYCB5IGBtb2NrdXBzX3JlYWxpc3RpYy9gLgoKIyMgSW5zdGFsYWNpw7NuIHkgZWplY3VjacOzbgoKSW5zdGFsYSBOb2RlLmpzIDIyIHkgbnBtLiBDb3BpYSBgLmVudi5leGFtcGxlYCBhIGAuZW52YCB5IGNvbXBsZXRhIGBWSVRFX0ZJUkVCQVNFXypgIGNvbiBsYSBjb25maWd1cmFjacOzbiBkZWwgY2xpZW50ZSB3ZWIgZGUgdHUgcHJveWVjdG8gRmlyZWJhc2UuIERlZmluZSBgVklURV9BUElfQkFTRV9VUkxgIGNvbiBsYSBVUkwgZGUgbGEgQVBJIGRlIGxhIHJhbWEgW2JhY2tlbmRdKGh0dHBzOi8vZ2l0aHViLmNvbS9MYWxvTW9udGFsdm8vR3VhcmRJQS1FcXVpcG8tMi90cmVlL2JhY2tlbmQpLiBFbCB2YWxvciBsb2NhbCBoYWJpdHVhbCBlcyBgaHR0cDovL2xvY2FsaG9zdDo0MDAwYC4KCmBgYGJhc2gKbnBtIGNpCm5wbSBydW4gZGV2CmBgYAoKQWJyZSBsYSBVUkwgcXVlIG11ZXN0cmEgVml0ZS4gUGFyYSBjb21waWxhciB5IHJldmlzYXIgZWwgcGFxdWV0ZSBlc3TDoXRpY286CgpgYGBiYXNoCm5wbSBydW4gYnVpbGQKbnBtIHJ1biBwcmV2aWV3CmBgYAoKUHVibGljYSBlbCBjb250ZW5pZG8gZGUgYGRpc3QvYCBlbiB1biBzZXJ2aWRvciBlc3TDoXRpY28gY29uIGZhbGxiYWNrIGEgYGluZGV4Lmh0bWxgIHBhcmEgbGFzIHJ1dGFzIGRlIGxhIFNQQS4gTG9zIHZhbG9yZXMgYFZJVEVfKmAgcXVlZGFuIGluY29ycG9yYWRvcyBlbiBlbCBuYXZlZ2Fkb3IgZHVyYW50ZSBsYSBjb21waWxhY2nDs24uIEVuIEdpdEh1YiBBY3Rpb25zIHNlIHB1ZWRlbiBjb25maWd1cmFyIGNvbW8gdmFyaWFibGVzIGRlbCByZXBvc2l0b3JpbyBjb24gbG9zIG1pc21vcyBub21icmVzLgoKTGEgZGV0ZWNjacOzbiB5IGNsYXNpZmljYWNpw7NuIGRlIHJpZXNnbyBzZSBlbmN1ZW50cmFuIGVuIGxhIHJhbWEgW2lhXShodHRwczovL2dpdGh1Yi5jb20vTGFsb01vbnRhbHZvL0d1YXJkSUEtRXF1aXBvLTIvdHJlZS9pYSkuDQo='; ;;
+              backend) paths=(.gitignore .firebaserc api db docker-compose.yml docs firebase.json firestore.rules functions); doc='IyBHdWFyZElBIMK3IEJhY2tlbmQKCkFQSSBFeHByZXNzLCBlc3F1ZW1hIFBvc3RncmVTUUwsIHJlZ2xhcyBkZSBGaXJlc3RvcmUgeSBDbG91ZCBGdW5jdGlvbnMuIFVzYSBOb2RlLmpzIDIyIHBhcmEgbGEgQVBJIHkgZWwgcnVudGltZSBkZSBOb2RlLmpzIGRlY2xhcmFkbyBlbiBgZnVuY3Rpb25zL3BhY2thZ2UuanNvbmAgcGFyYSBsYXMgZnVuY2lvbmVzLgoKIyMgQVBJIHkgUG9zdGdyZVNRTAoKRGVzZGUgbGEgcmHDrXogZGUgbGEgcmFtYToKCmBgYGJhc2gKZG9ja2VyIGNvbXBvc2UgdXAgLWQgcG9zdGdyZXMKY2QgYXBpCm5wbSBjaQpgYGAKCkNvcGlhIGBhcGkvLmVudi5leGFtcGxlYCBhIGBhcGkvLmVudmAgYW50ZXMgZGUgaW5pY2lhciBsYSBBUEkuIENvbmZpZ3VyYSBsYSBjb25leGnDs24gYSBQb3N0Z3JlU1FMIGVuIGVsIHB1ZXJ0byBsb2NhbCA1NDMzIHkgRmlyZWJhc2UgQWRtaW4gcGFyYSBlbCBlbnRvcm5vIGRlIHJldmlzacOzbi4gRWwgY29udGVuZWRvciBhcGxpY2EgYGRiL2luaXQuc3FsYCBhbCBpbmljaWFsaXphciB1bmEgYmFzZSB2YWPDrWEuCgpEZXNkZSBgYXBpL2AgZWplY3V0YToKCmBgYGJhc2gKbnBtIHN0YXJ0CmBgYAoKQ29tcHJ1ZWJhIGBHRVQgaHR0cDovL2xvY2FsaG9zdDo0MDAwL2hlYWx0aGAuIENvbnN1bHRhIFtDb25maWd1cmFjacOzbiBkZSBQb3N0Z3JlU1FMIHkgQVBJXShkb2NzL3Bvc3RncmVzLWFwaS1zZXR1cC5tZCkgeSBbQXV0ZW50aWNhY2nDs24gbcOzdmlsXShkb2NzL21vYmlsZS1hcGktYXV0aC5tZCkgcGFyYSBsb3MgZGV0YWxsZXMgZGUgaW50ZWdyYWNpw7NuLgoKQ3VhbmRvIGVqZWN1dGVzIGxhIHJhbWEgW2lhXShodHRwczovL2dpdGh1Yi5jb20vTGFsb01vbnRhbHZvL0d1YXJkSUEtRXF1aXBvLTIvdHJlZS9pYSkgZW4gbGEgbWlzbWEgbcOhcXVpbmEsIGxhIEFQSSBidXNjYXLDoSBkZXRlY2Npw7NuIGVuIGVsIHB1ZXJ0byA4MDAwIHkgY2xhc2lmaWNhY2nDs24gZGUgcmllc2dvIGVuIGVsIDgwMDEuIFNpIHNlIGVqZWN1dGFuIGVuIG90cm8gaG9zdCwgZGVmaW5lIGBJQV9HVUFSRElBX1VSTGAgeSBgTUxfU0VSVklDRV9VUkxgIGVuIGBhcGkvLmVudmAuCgojIyBGaXJlYmFzZQoKSW5zdGFsYSBsYXMgZGVwZW5kZW5jaWFzIGNvbiBgbnBtIGNpYCBkZW50cm8gZGUgYGZ1bmN0aW9ucy9gLiBDb25zdWx0YSBsYSBbZ3XDrWEgZGUgT1RQXShkb2NzL2VtYWlsLW90cC1zZXR1cC5tZCkgcGFyYSBjb25maWd1cmFyIGVsIGNvcnJlbyB5IHNlbGVjY2lvbmEgdHUgcHJveWVjdG8gZGUgcmV2aXNpw7NuIGVuIEZpcmViYXNlIENMSSBhbnRlcyBkZSBlamVjdXRhciBlbXVsYWRvcmVzIG8gZGVzcGxlZ2FyLiBMYXMgcmVnbGFzIHNlIGVuY3VlbnRyYW4gZW4gYGZpcmVzdG9yZS5ydWxlc2AgeSBsYXMgZnVuY2lvbmVzIHNlIHJlZ2lzdHJhbiBlbiBgZmlyZWJhc2UuanNvbmAuDQo='; ;;
+              ia) paths=(.gitignore guardia_ai ml_service); doc='IyBHdWFyZElBIMK3IEludGVsaWdlbmNpYSBhcnRpZmljaWFsCgp8IE3Ds2R1bG8gfCBGdW5jacOzbiB8IFB1ZXJ0byBkZSByZXZpc2nDs24gfAp8IC0tLSB8IC0tLSB8IC0tLSB8CnwgYGd1YXJkaWFfYWkvYCB8IERldGVjY2nDs24gZGUgcGVyc29uYXMgZW4gdmlkZW8gY29uIFlPTE92OCB5IE9wZW5DVi4gfCA4MDAwIHwKfCBgbWxfc2VydmljZS9gIHwgQ2xhc2lmaWNhY2nDs24gZGUgcmllc2dvIGNvbiBsb3MgbW9kZWxvcyBlbnRyZW5hZG9zIGluY2x1aWRvcy4gfCA4MDAxIHwKCiMjIERldGVjY2nDs24gZGUgcGVyc29uYXMKCkNvbnN1bHRhIFtsYSBndcOtYSBkZWwgc2VydmljaW9dKGd1YXJkaWFfYWkvUkVBRE1FLm1kKSBwYXJhIHVzYXIgUHl0aG9uIDMuMTEgY29uIGPDoW1hcmEgbyBhcmNoaXZvIGRlIHZpZGVvLiBQYXJhIGVqZWN1dGFyIGVsIHNlcnZpY2lvIGRlc2RlIERvY2tlciwgdXNhIGxhIHJhw616IGRlIGVzdGEgcmFtYToKCmBgYGJhc2gKZG9ja2VyIGJ1aWxkIC10IGd1YXJkaWEtZGV0ZWNjaW9uIC4vZ3VhcmRpYV9haQpkb2NrZXIgcnVuIC0tcm0gLXAgMTI3LjAuMC4xOjgwMDA6ODAwMCBndWFyZGlhLWRldGVjY2lvbgpgYGAKCkNvbXBydWViYSBgR0VUIGh0dHA6Ly9sb2NhbGhvc3Q6ODAwMC9oZWFsdGhgLiBFbCBwZXNvIGB5b2xvdjhuLnB0YCBmb3JtYSBwYXJ0ZSBkZWwgY29udGV4dG8gZGUgY29tcGlsYWNpw7NuLgoKIyMgQ2xhc2lmaWNhY2nDs24gZGUgcmllc2dvCgpDcmVhIHVuIGVudG9ybm8gdmlydHVhbCBjb24gUHl0aG9uIDMuMTEgeSBhY3TDrXZhbG8uIEluc3RhbGEgbGFzIGRlcGVuZGVuY2lhcyB5IGVqZWN1dGEgRmFzdEFQSSBkZXNkZSBgbWxfc2VydmljZS9gOgoKYGBgYmFzaApjZCBtbF9zZXJ2aWNlCnB5dGhvbiAtbSBwaXAgaW5zdGFsbCAtciByZXF1aXJlbWVudHMudHh0CnB5dGhvbiAtbSB1dmljb3JuIGFwaTphcHAgLS1ob3N0IDEyNy4wLjAuMSAtLXBvcnQgODAwMQpgYGAKCkFicmUgYGh0dHA6Ly8xMjcuMC4wLjE6ODAwMS9kb2NzYCBwYXJhIGNvbnN1bHRhciB5IHByb2JhciBsb3MgZW5kcG9pbnRzLiBFbCBwdWVydG8gODAwMSBwZXJtaXRlIGVqZWN1dGFyIGxvcyBkb3Mgc2VydmljaW9zIGEgbGEgdmV6LiBMb3MgbW9kZWxvcyBzZSBlbnRyZW5hcm9uIGNvbiBzY2lraXQtbGVhcm4gMS42LjEuIEVsIHNjcmlwdCBgdHJhaW5fbW9kZWxzLnB5YCBnZW5lcmEgbG9zIG1vZGVsb3MgYSBwYXJ0aXIgZGVsIGRhdGFzZXQgc2ludMOpdGljbyBkZXNjcml0byBlbiBbUkVBRE1FX01MLm1kXShtbF9zZXJ2aWNlL1JFQURNRV9NTC5tZCkuDQo='; ;;
+              movil) paths=(.gitignore .metadata analysis_options.yaml android assets DECISIONES_TECNICAS.md firebase.json ios lib linux macos mockups_pantalla_por_pantalla mockups_realistas pubspec.lock pubspec.yaml test TECH_STACK.md web windows); doc='IyBHdWFyZElBIMK3IEFwbGljYWNpw7NuIG3Ds3ZpbAoKQXBsaWNhY2nDs24gRmx1dHRlciBjb24gYXV0ZW50aWNhY2nDs24sIG1vbml0b3JlbyBkZSBjw6FtYXJhcywgYWxlcnRhcyB5IHJlcG9ydGVzLiBDb25zdWx0YSBbZGVjaXNpb25lcyB0w6ljbmljYXNdKERFQ0lTSU9ORVNfVEVDTklDQVMubWQpIHkgW3RlY25vbG9nw61hc10oVEVDSF9TVEFDSy5tZCkgcGFyYSByZXZpc2FyIGxhIGltcGxlbWVudGFjacOzbi4KCiMjIEluc3RhbGFjacOzbiB5IGVqZWN1Y2nDs24KCkluc3RhbGEgRmx1dHRlciAzLjI5LjMsIEpESyAxNyB5IGVsIFNESyBkZSBBbmRyb2lkLiBFamVjdXRhIGBmbHV0dGVyIGRvY3RvcmAgeSB2ZXJpZmljYSBsYSBjb25maWd1cmFjacOzbiBkZSBBbmRyb2lkIGFudGVzIGRlIGNvbmVjdGFyIHVuIGRpc3Bvc2l0aXZvIG8gaW5pY2lhciB1biBlbXVsYWRvci4KCmBgYGJhc2gKZmx1dHRlciBwdWIgZ2V0CmZsdXR0ZXIgcnVuCmBgYAoKUGFyYSB1c2FyIHVuIHByb3llY3RvIEZpcmViYXNlIGRlIHJldmlzacOzbiwgY29uZmlndXJhIHN1IGNsaWVudGUgY29uIEZsdXR0ZXJGaXJlIHkgYWN0dWFsaXphIGxhIFVSTCBkZSBsYSBBUEkgZW4gYGxpYi9jb3JlL2NvbnN0YW50cy9hcGlfY29uc3RhbnRzLmRhcnRgLiBSZXZpc2EgbGEgY29uZmlndXJhY2nDs24gZGUgY8OhbWFyYSBkZW50cm8gZGUgbGEgYXBwIHkgdXNhIHVuYSBjdWVudGEgZGUgcHJ1ZWJhIGNvbiBlbCByb2wgYXNpZ25hZG8gZW4gRmlyZWJhc2UuIExhIEFQSSB5IGxvcyBzZXJ2aWNpb3MgZGUgSUEgZXN0w6FuIGVuIGxhcyByYW1hcyBbYmFja2VuZF0oaHR0cHM6Ly9naXRodWIuY29tL0xhbG9Nb250YWx2by9HdWFyZElBLUVxdWlwby0yL3RyZWUvYmFja2VuZCkgZSBbaWFdKGh0dHBzOi8vZ2l0aHViLmNvbS9MYWxvTW9udGFsdm8vR3VhcmRJQS1FcXVpcG8tMi90cmVlL2lhKS4KCiMjIEdlbmVyYXIgZSBpbnN0YWxhciBlbCBBUEsKCmBgYGJhc2gKZmx1dHRlciBidWlsZCBhcGsgLS1kZWJ1ZwphZGIgaW5zdGFsbCAtciBidWlsZC9hcHAvb3V0cHV0cy9mbHV0dGVyLWFway9hcHAtZGVidWcuYXBrCmBgYAoKRWwgQVBLIGRlIGRlcHVyYWNpw7NuIHNpcnZlIHBhcmEgbGEgcmV2aXNpw7NuIGVuIEFuZHJvaWQuIExhIGRpc3RyaWJ1Y2nDs24gZW4gdW5hIHRpZW5kYSByZXF1aWVyZSB1bmEgY29tcGlsYWNpw7NuIGRlIHByb2R1Y2Npw7NuIGNvbiBmaXJtYSBwcm9waWEuDQo='; source="$staging/mobile"; origin=LaloMontalvo/GuardIA-Movil; revision=dc0a42be34ae6f1ed7325c214f540e91399aa542; ;;
+            esac
+            target="$staging/$branch"
+            git worktree add --quiet -b "$branch" "$target" "$GITHUB_SHA"
+            git -C "$target" rm -r --quiet -- .
+            git -C "$source" archive "$revision" -- "${paths[@]}" | tar -x -C "$target"
+            git -C "$target" add --all
+            git -C "$target" commit --quiet -m "Importar $branch de $origin en $revision"
+            printf '%s' "$doc" | base64 --decode > "$target/README.md"
+            if [ "$branch" = ia ]; then
+              printf '%s' 'ZmFzdGFwaQp1dmljb3JuCmpvYmxpYgpudW1weQpwYW5kYXMKc2Npa2l0LWxlYXJuPT0xLjYuMQo=' | base64 --decode > "$target/ml_service/requirements.txt"
+            fi
+            git -C "$target" add --all
+            git -C "$target" commit --quiet -m "Documentar la instalación de $branch"
+            if [ "$branch" = backend ]; then
+              printf '%s' 'ZGlmZiAtLWdpdCBhL2FwaS9zcmMvc2VydmVyLmpzIGIvYXBpL3NyYy9zZXJ2ZXIuanMKaW5kZXggZjUxOTE1Ni4uZjEyNzhmNiAxMDA2NDQKLS0tIGEvYXBpL3NyYy9zZXJ2ZXIuanMKKysrIGIvYXBpL3NyYy9zZXJ2ZXIuanMKQEAgLTIxLDYgKzIxLDcgQEAgZG90ZW52LmNvbmZpZygpOwogCiBjb25zdCBhcHAgPSBleHByZXNzKCk7CiBjb25zdCBwb3J0ID0gTnVtYmVyKHByb2Nlc3MuZW52LlBPUlQgfHwgNDAwMCk7Citjb25zdCBtbFNlcnZpY2VVcmwgPSAocHJvY2Vzcy5lbnYuTUxfU0VSVklDRV9VUkwgfHwgImh0dHA6Ly8xMjcuMC4wLjE6ODAwMSIpLnJlcGxhY2UoL1wvJC8sICIiKTsKIAogYXBwLnVzZShjb3JzKCkpOwogYXBwLnVzZShleHByZXNzLmpzb24oKSk7CkBAIC0yMzgsNiArMjM5LDEyIEBAIGFwcC5wYXRjaCgiL3VzZXJzLzppZC9zdGF0dXMiLCByZXF1aXJlQXV0aCwgcmVxdWlyZVJvbGUoWyJBZG1pbiIsICJTdXBlcnZpc29yIl0pCiAgICAgICBjaGFuZ2VzOiB7IHN0YXR1cyB9LAogICAgIH0pOwogCisgICAgcmVzLmpzb24oeyBvazogdHJ1ZSB9KTsKKyAgfSBjYXRjaCAoZXJyb3IpIHsKKyAgICBuZXh0KGVycm9yKTsKKyAgfQorfSk7CisKIGFwcC5nZXQoIi9zdGF0dXMiLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgIHRyeSB7CiAgICAgY29uc3QgYWlIb3N0ID0gcHJvY2Vzcy5lbnYuSUFfR1VBUkRJQV9VUkwgfHwgImh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7CkBAIC0zMTIsNyArMzE5LDcgQEAgYXBwLmdldCgiL21sL2V2YWx1YXRpb24iLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICAgICByZXMuanNvbihKU09OLnBhcnNlKGRhdGEpKTsKICAgICB9IGVsc2UgewogICAgICAgLy8gSW50ZW50YXIgY29uc3VsdGFyIGFsIHNlcnZpY2lvIEZhc3RBUEkgc2kgZXhpc3RlCi0gICAgICBjb25zdCByZXNwID0gYXdhaXQgZmV0Y2goImh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tbC9ldmFsdWF0aW9uIikuY2F0Y2goKCkgPT4gbnVsbCk7CisgICAgICBjb25zdCByZXNwID0gYXdhaXQgZmV0Y2goYCR7bWxTZXJ2aWNlVXJsfS9tbC9ldmFsdWF0aW9uYCkuY2F0Y2goKCkgPT4gbnVsbCk7CiAgICAgICBpZiAocmVzcCAmJiByZXNwLm9rKSB7CiAgICAgICAgIGNvbnN0IGpzb24gPSBhd2FpdCByZXNwLmpzb24oKTsKICAgICAgICAgcmVzLmpzb24oanNvbik7CkBAIC0zMjMsNiArMzMwLDggQEAgYXBwLmdldCgiL21sL2V2YWx1YXRpb24iLCBhc3luYyAoX3JlcSwgcmVzLCBuZXh0KSA9PiB7CiAgIH0gY2F0Y2ggKGVycm9yKSB7CiAgICAgbmV4dChlcnJvcik7CiAgIH0KK30pOworCiBhcHAucG9zdCgiL21sL3NlbGVjdC1tb2RlbCIsIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4gewogICB0cnkgewogICAgIGNvbnN0IHsgbW9kZWxLZXkgfSA9IHJlcS5ib2R5ID8/IHt9OwpAQCAtMzM4LDcgKzM0Nyw3IEBAIGFwcC5wb3N0KCIvbWwvc2VsZWN0LW1vZGVsIiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgICAgY29uc3QgZXZhbFBhdGggPSBwYXRoLnJlc29sdmUocHJvY2Vzcy5jd2QoKSwgIm1sX3NlcnZpY2UvZXZhbHVhdGlvbl9yZXN1bHRzLmpzb24iKTsKIAogICAgIC8vIFJlZW52aWFyIGEgbGEgQVBJIGRlIFB5dGhvbiBzaSBlc3TilJzDrSBhY3RpdmEKLSAgICBjb25zdCByZXNwID0gYXdhaXQgZmV0Y2goImh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9tbC9zZWxlY3QtbW9kZWwiLCB7CisgICAgY29uc3QgcmVzcCA9IGF3YWl0IGZldGNoKGAke21sU2VydmljZVVybH0vbWwvc2VsZWN0LW1vZGVsYCwgewogICAgICAgbWV0aG9kOiAiUE9TVCIsCiAgICAgICBoZWFkZXJzOiB7ICJDb250ZW50LVR5cGUiOiAiYXBwbGljYXRpb24vanNvbiIgfSwKICAgICAgIGJvZHk6IEpTT04uc3RyaW5naWZ5KHsgbW9kZWxfa2V5OiBrZXkgfSksCkBAIC0zNzgsNyArMzg3LDcgQEAgYXBwLnBvc3QoIi9tbC9zZWxlY3QtbW9kZWwiLCBhc3luYyAocmVxLCByZXMsIG5leHQpID0+IHsKIAogYXBwLnBvc3QoIi9tbC9wcmVkaWN0IiwgYXN5bmMgKHJlcSwgcmVzLCBuZXh0KSA9PiB7CiAgIHRyeSB7Ci0gICAgY29uc3QgcmVzcCA9IGF3YWl0IGZldGNoKCJodHRwOi8vMTI3LjAuMC4xOjgwMDAvbWwvcHJlZGljdCIsIHsKKyAgICBjb25zdCByZXNwID0gYXdhaXQgZmV0Y2goYCR7bWxTZXJ2aWNlVXJsfS9tbC9wcmVkaWN0YCwgewogICAgICAgbWV0aG9kOiAiUE9TVCIsCiAgICAgICBoZWFkZXJzOiB7ICJDb250ZW50LVR5cGUiOiAiYXBwbGljYXRpb24vanNvbiIgfSwKICAgICAgIGJvZHk6IEpTT04uc3RyaW5naWZ5KHJlcS5ib2R5ID8/IHt9KSwK' | base64 --decode | git -C "$target" apply
+              node --check "$target/api/src/server.js"
+              git -C "$target" add api/src/server.js
+              git -C "$target" commit --quiet -m "Restaurar el inicio de la API y separar los puertos de IA"
+            fi
+          done
+          git push --atomic origin "${missing[@]}"
+
+  panel:
+    needs: publicar-componentes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: panel-web
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_FUNCTIONS_REGION: ${{ vars.VITE_FIREBASE_FUNCTIONS_REGION }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      - run: cd dist && zip -q -r ../guardia-panel.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guardia-panel
+          path: guardia-panel.zip
+          if-no-files-found: error
+
+  android:
+    needs: publicar-componentes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: movil
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+      - run: flutter pub get
+      - run: flutter build apk --debug --no-pub
+      - run: cp build/app/outputs/flutter-apk/app-debug.apk guardia-movil-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guardia-android-debug
+          path: guardia-movil-debug.apk
+          if-no-files-found: error
+
+  deteccion:
+    needs: publicar-componentes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ia
+      - run: zip -q -r guardia-deteccion-docker.zip guardia_ai
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guardia-deteccion-docker
+          path: guardia-deteccion-docker.zip
+          if-no-files-found: error
+
+  release:
+    needs: [publicar-componentes, panel, android, deteccion]
+    if: ${{ always() && needs.publicar-componentes.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: paquetes
+          merge-multiple: true
+      - name: Adjuntar paquetes a la versión
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          assets=(paquetes/*.zip paquetes/*.apk)
+          if [ "${#assets[@]}" -eq 0 ]; then exit 1; fi
+          if gh release view entrega-v1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload entrega-v1 "${assets[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create entrega-v1 "${assets[@]}" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'GuardIA · Entrega técnica' --notes 'Paquetes generados para la revisión técnica. El APK usa firma de depuración. El panel requiere configurar Firebase para compilar una versión funcional en el entorno de revisión.'
+          fi
