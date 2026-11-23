@@ -1,38 +1,13 @@
 name: Paquetes de revisión
 
 on:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/paquetes.yml']
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  publicar-apk:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ github.token }}
-          run-id: '45271672356'
-          name: guardia-android-debug
-          path: paquetes
-          merge-multiple: true
-      - name: Adjuntar el APK de revisión
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if gh release view entrega-v1 --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fxq guardia-movil-debug.apk; then exit 0; fi
-          gh release upload entrega-v1 paquetes/guardia-movil-debug.apk --repo "$GITHUB_REPOSITORY"
-
   panel:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +36,6 @@ jobs:
           if-no-files-found: error
 
   android:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,7 +58,6 @@ jobs:
           if-no-files-found: error
 
   deteccion:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
