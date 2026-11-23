@@ -13,6 +13,8 @@ Cada rama incluye su gu�a de instalaci�n. Para probar el sistema integrado, 
 
 ## Compilaciones
 
+Los paquetes publicados se descargan en [Releases](https://github.com/LaloMontalvo/GuardIA-Equipo-2/releases).
+
 El flujo [Paquetes de revisi�n](https://github.com/LaloMontalvo/GuardIA-Equipo-2/actions/workflows/paquetes.yml) genera el APK Android de depuraci�n, el sitio est�tico del panel y un ZIP con el contexto Docker del servicio de detecci�n. El APK se instala en un dispositivo Android compatible. Para que el panel compilado funcione con Firebase, provee las variables p�blicas de cliente descritas en la rama `panel-web`. La app usa la configuraci�n Firebase de cliente incluida en su c�digo.
 
 ## Historial de origen
